@@ -4,14 +4,14 @@ import com.microservices.userService.model.User;
 import com.microservices.userService.service.JwtService;
 import com.microservices.userService.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-
 @RestController
 @RequestMapping("/auth")
 public class UserController {
@@ -25,19 +25,19 @@ public class UserController {
     @Autowired
     private JwtService jwtService;
 
-    @PostMapping("register")
-    public User register(@RequestBody User user) {
-        return service.saveUser(user);
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody User user) {
+        service.saveUser(user);
+        return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
     }
 
-    @GetMapping("register")
-    public List<User> getUsers() {
-        return service.getAllUsers();
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getUsers() {
+        return new ResponseEntity<>(service.getAllUsers(), HttpStatus.OK);
     }
 
-    @PostMapping("login")
-    public String login(@RequestBody User user) {
-
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody User user) {
         Authentication authentication = authenticationManager
                 .authenticate(new UsernamePasswordAuthenticationToken(
                         user.getUsername(), user.getPassword()));
@@ -46,13 +46,13 @@ public class UserController {
         if (authentication.isAuthenticated()) {
 
             User dbUser = service.findByUsername(user.getUsername());
-
-            return jwtService.generateToken(
+            String token = jwtService.generateToken(
                     dbUser.getUsername(),
                     dbUser.getRole()
             );
+            return new ResponseEntity<>(token, HttpStatus.OK);
         }
 
-        return "Login Failed";
+        return new ResponseEntity<>("Login Failed", HttpStatus.UNAUTHORIZED);
     }
 }
