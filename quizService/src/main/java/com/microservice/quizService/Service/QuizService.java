@@ -38,7 +38,8 @@ public class QuizService {
     }
 
     public ResponseEntity<List<QuestionWrapper>> getQuizQuestions(Integer id) {
-       Quiz quiz = quizDao.findById(id).get();
+        Quiz quiz = quizDao.findById(id)
+                .orElseThrow(() -> new RuntimeException("Quiz not found with id: " + id));
         List<Integer> questionIds = quiz.getQuestionIds();
         ResponseEntity<List<QuestionWrapper>>questions = quizInterface.getQuestionFromId(questionIds);
 
