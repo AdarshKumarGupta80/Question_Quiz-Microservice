@@ -4,6 +4,7 @@ import com.microservices.QuestionService.Model.Question;
 import com.microservices.QuestionService.Model.QuestionWrapper;
 import com.microservices.QuestionService.Model.Response;
 import com.microservices.QuestionService.Service.QuestionService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class QuestionController {
     }
 
     @PostMapping("add")
-    public ResponseEntity<String> addQuestion(@RequestBody Question question){
+    public ResponseEntity<String> addQuestion(@Valid @RequestBody Question question){
         return  questionService.addQuestion(question);
     }
       @GetMapping("generate")

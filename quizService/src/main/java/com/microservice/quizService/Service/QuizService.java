@@ -1,6 +1,5 @@
 package com.microservice.quizService.Service;
 
-import com.microservice.quizService.Model.Question;
 import com.microservice.quizService.Model.QuestionWrapper;
 import com.microservice.quizService.Model.Quiz;
 import com.microservice.quizService.Model.Response;

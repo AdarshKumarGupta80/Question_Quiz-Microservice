@@ -3,6 +3,7 @@ package com.microservices.userService.controller;
 import com.microservices.userService.model.User;
 import com.microservices.userService.service.JwtService;
 import com.microservices.userService.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +27,7 @@ public class UserController {
     private JwtService jwtService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody User user) {
+    public ResponseEntity<String> register(@Valid @RequestBody User user) {
         service.saveUser(user);
         return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
     }
