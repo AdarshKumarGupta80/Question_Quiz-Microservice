@@ -25,6 +25,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/actuator"
     );
 
+    private static final List<String> ADMIN_ONLY_PATHS = List.of(
+            "/auth/users",
+            "/question/allQuestions",
+            "/question/add",
+            "/auth/register/admin",
+            "/question/category",
+            "/question/generate",
+            "/quiz/create"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -32,6 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+        String method = request.getMethod();
 
         boolean isOpen = OPEN_PATHS.stream().anyMatch(path::startsWith);
         if (isOpen) {
@@ -41,29 +52,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Missing or invalid Authorization header");
+            sendError(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    "Missing or invalid Authorization header");
             return;
         }
 
         String token = authHeader.substring(7);
+        String role;
 
         try {
             Claims claims = jwtUtil.validateToken(token);
-            String role = claims.get("role", String.class);
-
-            if (path.startsWith("/question") && !"ADMIN".equals(role)) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                response.getWriter().write("Access denied: ADMIN role required");
-                return;
-            }
-
+            role = claims.get("role", String.class);
         } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid or expired token");
+            sendError(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    "Invalid or expired token");
+            return;
+        }
+        boolean isAdminPath = ADMIN_ONLY_PATHS.stream().anyMatch(path::startsWith);
+        if (isAdminPath && !"ADMIN".equals(role)) {
+            sendError(response, HttpServletResponse.SC_FORBIDDEN,
+                    "Access denied: ADMIN role required for " + path);
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void sendError(HttpServletResponse response,
+                           int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.getWriter().write(
+                "{\"status\":" + status + "," +
+                        "\"message\":\"" + message + "\"}"
+        );
     }
 }

@@ -13,6 +13,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @RestController
 @RequestMapping("/auth")
 public class UserController {
@@ -27,9 +28,15 @@ public class UserController {
     private JwtService jwtService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody User user) {
-        service.saveUser(user);
-        return new ResponseEntity<>("User registered successfully", HttpStatus.CREATED);
+    public ResponseEntity<String> registerStudent(@Valid @RequestBody User user) {
+        service.registerStudent(user);
+        return new ResponseEntity<>("Student registered successfully", HttpStatus.CREATED);
+    }
+
+    @PostMapping("/register/admin")
+    public ResponseEntity<String> registerAdmin(@Valid @RequestBody User user) {
+        service.registerAdmin(user);
+        return new ResponseEntity<>("Admin registered successfully", HttpStatus.CREATED);
     }
 
     @GetMapping("/users")
@@ -43,9 +50,7 @@ public class UserController {
                 .authenticate(new UsernamePasswordAuthenticationToken(
                         user.getUsername(), user.getPassword()));
 
-
         if (authentication.isAuthenticated()) {
-
             User dbUser = service.findByUsername(user.getUsername());
             String token = jwtService.generateToken(
                     dbUser.getUsername(),
